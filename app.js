@@ -23,39 +23,59 @@ const pool = mysql.createPool({
 //Get all
 app.get('/books', (req, res) => {
     pool.getConnection((err, connect) => {
-        if (err) throw err;
-        connect.query('SELECT * from books', (err, rows) => {
-            connect.release();
-            if (err) throw err;
-            res.send(rows);
-        })
+        const query = `SELECT * from books`;
+        if (!err) {
+            connect.query(query, (err, rows) => {
+                connect.release();
+                if (!err) {
+                    res.json({ books: rows });
+                } else {
+                    res.json({ message: err });
+                }
+            })
+        } else {
+            res.json({ message: err });
+        }
     })
 })
 
 //Get by id
 app.get('/books/:id', (req, res) => {
+    const paramsId = req.params.id;
+    const query = `SELECT * from books WHERE id=?`
     pool.getConnection((err, connnection) => {
         if (!err) {
-            connnection.query("SELECT * from books WHERE id=?", [req.params.id], (err, rows) => {
+            connnection.query(query, [paramsId], (err, rows) => {
                 connnection.release();
-                if (err) throw err;
-                res.send(rows);
+                if (!err) {
+                    res.json({ book: rows });
+                } else {
+                    res.json(err)
+                }
             })
         } else {
-            console.log("Err", err)
+            res.json({ error: err })
         }
     })
 })
 
 
 app.delete('/books/:id', (req, res) => {
+    const paramsId = req.params.id;
+    const query = `DELETE from books WHERE id=?`;
     pool.getConnection((err, connection) => {
-        if (err) throw err
-        connection.query("DELETE from books WHERE id=?", [req.params.id], (err, rows) => {
-            connection.release();
-            if (err) throw err;
-            res.send(`Books row deleted with id : ${req.params.id}`)
-        })
+        if (!err) {
+            connection.query(query, [paramsId], (err, rows) => {
+                connection.release();
+                if (!err) {
+                    res.json({ message: `Books row deleted with id : ${req.params.id}` });
+                } else {
+                    res.json({ message: err });
+                }
+            })
+        } else {
+            res.json({ message: err });
+        }
     })
 })
 
